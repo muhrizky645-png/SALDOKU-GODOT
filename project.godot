@@ -14,6 +14,9 @@ config/icon="res://icon.svg"
 [autoload]
 
 Karakter="*res://scripts/KarakterData.gd"
+Skor="*res://scripts/Skor.gd"
+Level="*res://scripts/Level.gd"
+Waktu="*res://scripts/Waktu.gd"
 
 [display]
 

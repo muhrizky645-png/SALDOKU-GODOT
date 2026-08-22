@@ -1,5 +1,5 @@
 extends Area2D
-# Port ringkas dari EnemyChase.cs (Fase 1).
+# Port ringkas dari EnemyChase.cs (Fase 1). Mati -> tambah skor + jatuhkan XP.
 
 var speed := 120.0
 var hp := 1
@@ -58,4 +58,9 @@ func mati() -> void:
 	var main = get_tree().get_first_node_in_group("main")
 	if main != null and main.has_method("tambah_skor"):
 		main.tambah_skor(skor)
+	if main != null:
+		var g = load("res://scripts/XpGem.gd").new()
+		g.nilai = 1
+		main.add_child(g)
+		g.global_position = global_position
 	queue_free()

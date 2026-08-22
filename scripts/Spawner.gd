@@ -1,5 +1,6 @@
 extends Node
 # Port ringkas dari ZombieSpawner.cs - spawn musuh mengelilingi pemain.
+# Kesulitan naik seiring waktu (baca Waktu.detik / GameTimer.Detik).
 
 var player: Node2D = null
 
@@ -15,7 +16,11 @@ var _elapsed := 0.0
 func _process(delta: float) -> void:
 	if player == null or not is_instance_valid(player):
 		return
-	_elapsed += delta
+	var W = get_node_or_null("/root/Waktu")
+	if W != null:
+		_elapsed = W.detik
+	else:
+		_elapsed += delta
 	var level := 1 + int(_elapsed / 20.0)
 	var jeda_now := maxf(0.25, jeda_awal - 0.06 * (level - 1))
 	var maks_now := mini(maks_mutlak, maks_awal + 5 * (level - 1))

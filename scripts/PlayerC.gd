@@ -1,5 +1,5 @@
 extends Node2D
-# Uji C: versi lengkap. (fix cast Node2D di loop grup)
+# Uji C: versi lengkap (fix cast Node2D).
 
 var speed := 340.0
 var bob_amount := 0.08
@@ -127,9 +127,9 @@ func _process(delta: float) -> void:
 		_tembak_sekarang()
 		_tembak = fire_rate
 	for e in get_tree().get_nodes_in_group("musuh"):
-		var em := e as Node2D
-		if em != null and is_instance_valid(em):
-			if global_position.distance_to(em.global_position) < 72.0:
+		if is_instance_valid(e):
+			var em := e as Node2D
+			if em != null and global_position.distance_to(em.global_position) < 72.0:
 				hp -= 14.0 * delta
 	if hp <= 0.0 and not sudah_mati:
 		sudah_mati = true
@@ -142,14 +142,16 @@ func _tembak_sekarang() -> void:
 	if musuh.is_empty():
 		return
 	var terdekat: Node2D = null
-	var jd := range_tembak
+	var jarak := range_tembak
 	for z in musuh:
+		if not is_instance_valid(z):
+			continue
 		var zm := z as Node2D
-		if zm == null or not is_instance_valid(zm):
+		if zm == null:
 			continue
 		var d := global_position.distance_to(zm.global_position)
-		if d < jd:
-			jd = d
+		if d < jarak:
+			jarak = d
 			terdekat = zm
 	if terdekat == null:
 		return

@@ -1,12 +1,13 @@
 extends Node2D
 # Orkestrator Fase 1: kamera ikut pemain, spawner, HUD, joystick.
 
+const VER := "MIN9"
+
 var player = null
 var camera: Camera2D = null
 var skor := 0
 var waktu := 0.0
 var over := false
-var _dbg_err := ""
 var _diag := ""
 
 var _lbl_skor: Label = null
@@ -28,12 +29,8 @@ func _ready() -> void:
 	camera.make_current()
 
 	var ps = load("res://scripts/Player.gd")
-	if ps == null:
-		_dbg_err = "PlayerScript=null"
-	else:
+	if ps != null:
 		player = ps.new()
-		if player == null:
-			_dbg_err = "PlayerNew=null(compile?)"
 	if player != null:
 		add_child(player)
 		player.global_position = Vector2.ZERO
@@ -104,7 +101,7 @@ func _update_ui() -> void:
 		if hidup:
 			pl = int(player.parts_loaded)
 		var jml := get_tree().get_nodes_in_group("musuh").size()
-		_lbl_dbg.text = "DBG hidup=%s parts=%d musuh=%d [%s]" % [str(hidup), pl, jml, _diag]
+		_lbl_dbg.text = "DBG %s hidup=%s parts=%d musuh=%d [%s]" % [VER, str(hidup), pl, jml, _diag]
 
 func tambah_skor(n: int) -> void:
 	skor += n

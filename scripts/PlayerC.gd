@@ -1,5 +1,5 @@
 extends Node2D
-# Uji C: versi lengkap (fix cast Node2D).
+# Uji C: versi lengkap (fix absf + cast Node2D).
 
 var speed := 340.0
 var bob_amount := 0.08
@@ -112,7 +112,7 @@ func _process(delta: float) -> void:
 	elif dir.x > 0.01:
 		_face = 1.0
 	if jalan:
-		var bob := 1.0 + abs(sin(_t * bob_speed)) * bob_amount
+		var bob := 1.0 + absf(sin(_t * bob_speed)) * bob_amount
 		scale = Vector2(1.0, bob)
 	else:
 		scale = Vector2.ONE

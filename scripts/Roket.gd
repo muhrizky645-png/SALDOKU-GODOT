@@ -1,6 +1,5 @@
 extends Node2D
-# Port dari Roket.cs - roket pelacak, meledak (area damage) saat dekat musuh.
-# Ledakan visual penuh (Ledakan.cs) menyusul di Fase C.
+# Port dari Roket.cs - roket pelacak, meledak (Ledakan area) saat dekat musuh / habis umur.
 
 var _target: Node2D = null
 var speed := 800.0
@@ -51,27 +50,15 @@ func _process(delta: float) -> void:
 			return
 
 func _meledak() -> void:
-	for m in get_tree().get_nodes_in_group("musuh"):
-		if not is_instance_valid(m):
-			continue
-		var mm := m as Node2D
-		if mm == null:
-			continue
-		if global_position.distance_to(mm.global_position) <= radius:
-			if m.has_method("kena"):
-				m.kena(dmg)
-	var f := Polygon2D.new()
-	var pts := PackedVector2Array()
-	for i in 16:
-		var a := TAU * float(i) / 16.0
-		pts.append(Vector2(cos(a), sin(a)) * radius)
-	f.polygon = pts
-	f.color = Color(1.0, 0.6, 0.2, 0.5)
 	var main = get_tree().get_first_node_in_group("main")
 	if main != null:
-		main.add_child(f)
-		f.global_position = global_position
-		get_tree().create_timer(0.18).timeout.connect(f.queue_free)
+		var led = load("res://scripts/Ledakan.gd").new()
+		led.radius = radius
+		led.dmg_musuh = dmg
+		led.dmg_pemain = 0.0
+		led.warna = Color(1.0, 0.6, 0.2, 0.85)
+		main.add_child(led)
+		led.global_position = global_position
 	queue_free()
 
 func _musuh_terdekat() -> Node2D:

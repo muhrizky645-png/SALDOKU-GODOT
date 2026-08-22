@@ -1,6 +1,6 @@
 extends Node2D
 # Port dari XpGem.cs - permata XP jatuh saat musuh mati, ketarik ke pemain.
-# Jarak magnet dipengaruhi skill Magnet + Mode Dewa (magnet semesta).
+# Jarak magnet dipengaruhi skill Magnet + Mode Dewa + item Magnet (paksa_tarik).
 
 var nilai := 1
 var ukuran := 1.2
@@ -11,6 +11,10 @@ var kecepatan_tarik := 520.0
 var _player: Node2D = null
 var _t := 0.0
 var _kilau := 1.0
+var _paksa := false
+
+func paksa_tarik() -> void:
+	_paksa = true
 
 func _ready() -> void:
 	add_to_group("xp")
@@ -40,6 +44,9 @@ func _process(delta: float) -> void:
 		jm *= Sk.magnet_mult
 	var dw = get_node_or_null("/root/Dewa")
 	if dw != null and dw.aktif:
+		jm = 99999.0
+		kt = maxf(kt, 1400.0)
+	if _paksa:
 		jm = 99999.0
 		kt = maxf(kt, 1400.0)
 	if d <= jm:

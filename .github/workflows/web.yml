@@ -6,7 +6,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 env:
   GODOT_VERSION: "4.3"
@@ -35,30 +41,27 @@ jobs:
         run: |
           mkdir -p build/web
           godot --headless --verbose --export-release "Web" build/web/index.html
-          touch build/web/.nojekyll
           echo "--- Hasil web build ---"
           ls -la build/web/ || true
 
-      - name: Upload artifact web
-        uses: actions/upload-artifact@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
         with:
-          name: web-build
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
           path: build/web
 
   deploy:
-    name: Deploy ke gh-pages
+    name: Deploy to Pages
     needs: build-web
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download artifact web
-        uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: build/web
-
-      - name: Publish ke branch gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
-          publish_branch: gh-pages
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

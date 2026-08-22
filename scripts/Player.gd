@@ -33,17 +33,24 @@ func _ready() -> void:
 	_bangun_rig()
 
 func _bangun_rig() -> void:
-	var idx: int = Karakter.dipilih
-	nama = Karakter.nama_dipilih()
-	_weapon_tex = Karakter.tekstur(idx, "Weapon")
+	var K = get_node_or_null("/root/Karakter")
 	rig = Node2D.new()
 	rig.name = "Rig"
 	add_child(rig)
 
-	var body: Texture2D = Karakter.tekstur(idx, "Body")
-	var head: Texture2D = Karakter.tekstur(idx, "Head")
-	var lfoot: Texture2D = Karakter.tekstur(idx, "Left_Foot")
-	var rfoot: Texture2D = Karakter.tekstur(idx, "Right_Foot")
+	var body: Texture2D = null
+	var head: Texture2D = null
+	var lfoot: Texture2D = null
+	var rfoot: Texture2D = null
+
+	if K != null:
+		var idx: int = K.dipilih
+		nama = K.nama_dipilih()
+		_weapon_tex = K.tekstur(idx, "Weapon")
+		body = K.tekstur(idx, "Body")
+		head = K.tekstur(idx, "Head")
+		lfoot = K.tekstur(idx, "Left_Foot")
+		rfoot = K.tekstur(idx, "Right_Foot")
 
 	var bw := 32.0
 	var bh := 48.0
@@ -176,7 +183,7 @@ func _tembak_sekarang() -> void:
 		return
 	for i in n:
 		var ap := arah.rotated(mulai + float(i) * sudut_sebar)
-		var b = preload("res://scripts/Bullet.gd").new()
+		var b = load("res://scripts/Bullet.gd").new()
 		b.setup(_weapon_tex, ap)
 		main.add_child(b)
 		b.global_position = global_position

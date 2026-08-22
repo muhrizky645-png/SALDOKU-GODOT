@@ -125,4 +125,63 @@ func _update_ui() -> void:
 	if _lbl_level != null and L != null:
 		_lbl_level.text = "LEVEL %d" % L.level
 	if _bar_fill != null and L != null:
-		_bar_fill.size = Vector2((BAR_W - 4.0) * L.ras
+		_bar_fill.size = Vector2((BAR_W - 4.0) * L.rasio_xp(), BAR_H - 4.0)
+	if _lbl_skor != null and S != null:
+		_lbl_skor.text = "SKOR %d" % S.skor
+	if _lbl_hp != null:
+		var hpv := 0
+		if hidup:
+			hpv = int(maxf(0.0, player.hp))
+		_lbl_hp.text = "NYAWA %d" % hpv
+	if _lbl_waktu != null and W != null:
+		_lbl_waktu.text = W.teks()
+	if _lbl_dbg != null:
+		var jml := get_tree().get_nodes_in_group("musuh").size()
+		var lv := 0
+		if L != null:
+			lv = L.level
+		var pl := 0
+		if hidup:
+			pl = player.parts_loaded
+		var sinfo := ""
+		var Sen = get_node_or_null("/root/Senjata")
+		if Sen != null:
+			sinfo = "O%d A%d R%d" % [Sen.lv_orbit, Sen.lv_aura, Sen.lv_roket]
+		_lbl_dbg.text = "DBG %s hidup=%s parts=%d musuh=%d lv=%d %s [%s]" % [VER, str(hidup), pl, jml, lv, sinfo, _diag]
+
+func game_over() -> void:
+	if over:
+		return
+	over = true
+	var W = get_node_or_null("/root/Waktu")
+	if W != null:
+		W.jalan = false
+	var S = get_node_or_null("/root/Skor")
+	var skor := 0
+	var rekor := 0
+	if S != null:
+		skor = S.skor
+		rekor = S.rekor
+	var cl := CanvasLayer.new()
+	cl.layer = 80
+	add_child(cl)
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.7)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cl.add_child(bg)
+	var lbl := Label.new()
+	lbl.text = "GAME OVER\nSKOR %d\nREKOR %d\n\nSentuh untuk main lagi" % [skor, rekor]
+	lbl.add_theme_font_size_override("font_size", 56)
+	lbl.add_theme_color_override("font_color", Color.WHITE)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cl.add_child(lbl)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not over:
+		return
+	if event is InputEventScreenTouch and event.pressed:
+		get_tree().reload_current_scene()
+	elif event is InputEventMouseButton and event.pressed:
+		get_tree().reload_current_scene()

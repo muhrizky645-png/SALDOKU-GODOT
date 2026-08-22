@@ -7,6 +7,7 @@ var skor := 0
 var waktu := 0.0
 var over := false
 var _dbg_err := ""
+var _diag := ""
 
 var _lbl_skor: Label = null
 var _lbl_hp: Label = null
@@ -16,6 +17,9 @@ var _lbl_dbg: Label = null
 func _ready() -> void:
 	add_to_group("main")
 	RenderingServer.set_default_clear_color(Color(0.12, 0.13, 0.18))
+
+	for nm in ["KarakterData", "Bullet", "Enemy", "Spawner", "Joystick", "Player"]:
+		_cek(nm)
 
 	camera = Camera2D.new()
 	camera.zoom = Vector2(1.15, 1.15)
@@ -44,6 +48,17 @@ func _ready() -> void:
 
 	_bangun_ui()
 
+func _cek(nm: String) -> void:
+	var s = load("res://scripts/" + nm + ".gd")
+	if s == null:
+		_diag += nm + "=L "
+		return
+	var o = s.new()
+	if o == null:
+		_diag += nm + "=N "
+	else:
+		o.free()
+
 func _process(delta: float) -> void:
 	if camera != null and player != null and is_instance_valid(player):
 		camera.global_position = camera.global_position.lerp(player.global_position, clampf(delta * 6.0, 0.0, 1.0))
@@ -63,7 +78,7 @@ func _bangun_ui() -> void:
 	_lbl_skor = _mk_label(cl, Vector2(40, 40), 52)
 	_lbl_hp = _mk_label(cl, Vector2(40, 110), 44)
 	_lbl_waktu = _mk_label(cl, Vector2(40, 172), 44)
-	_lbl_dbg = _mk_label(cl, Vector2(40, 234), 30)
+	_lbl_dbg = _mk_label(cl, Vector2(40, 234), 28)
 
 func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
 	var l := Label.new()
@@ -89,7 +104,7 @@ func _update_ui() -> void:
 		if hidup:
 			pl = int(player.parts_loaded)
 		var jml := get_tree().get_nodes_in_group("musuh").size()
-		_lbl_dbg.text = "DBG hidup=%s parts=%d/5 musuh=%d err=%s" % [str(hidup), pl, jml, _dbg_err]
+		_lbl_dbg.text = "DBG hidup=%s parts=%d musuh=%d [%s]" % [str(hidup), pl, jml, _diag]
 
 func tambah_skor(n: int) -> void:
 	skor += n

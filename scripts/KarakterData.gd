@@ -1,16 +1,16 @@
 extends Node
 # Port dari KarakterManager.cs (SALDOKU Unity) - autoload "Karakter".
 
-const ID := [
+const ID: Array[String] = [
 	"Archer_Character_1", "Cave_Man_Character_2", "Clown_Character_3",
 	"Monk_Character_4", "Ninja_Character_5", "Pirate_Character_6",
 	"Soldier_Character_7", "Warrior_Character_8", "Wizard_Character_9",
 ]
-const NAMA := [
+const NAMA: Array[String] = [
 	"PEMANAH", "MANUSIA GUA", "BADUT", "BIKSU", "NINJA",
 	"BAJAK LAUT", "TENTARA", "KESATRIA", "PENYIHIR",
 ]
-const BAGIAN := ["Body", "Head", "Left_Foot", "Right_Foot", "Weapon"]
+const BAGIAN: Array[String] = ["Body", "Head", "Left_Foot", "Right_Foot", "Weapon"]
 const BAWAAN := 4  # Ninja
 const BASE := "res://Assets/Jovial Games/Simple 2D Cute Characters/Characters/"
 
@@ -47,12 +47,10 @@ func sebelumnya() -> void:
 func tekstur(idx: int, bagian: String) -> Texture2D:
 	if idx < 0 or idx >= ID.size():
 		return null
-	var key := "%d/%s" % [idx, bagian]
+	var key: String = "%d/%s" % [idx, bagian]
 	if _cache.has(key):
 		return _cache[key]
-	var path := BASE + ID[idx] + "/" + bagian + ".png"
-	var t: Texture2D = null
-	# ResourceLoader.exists() kadang keliru di export web, jadi tetap coba load().
-	t = load(path) as Texture2D
+	var path: String = BASE + ID[idx] + "/" + bagian + ".png"
+	var t: Texture2D = load(path) as Texture2D
 	_cache[key] = t
 	return t

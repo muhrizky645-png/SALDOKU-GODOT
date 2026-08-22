@@ -52,7 +52,7 @@ func tekstur(idx: int, bagian: String) -> Texture2D:
 		return _cache[key]
 	var path := BASE + ID[idx] + "/" + bagian + ".png"
 	var t: Texture2D = null
-	if ResourceLoader.exists(path):
-		t = load(path)
+	# ResourceLoader.exists() kadang keliru di export web, jadi tetap coba load().
+	t = load(path) as Texture2D
 	_cache[key] = t
 	return t

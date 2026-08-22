@@ -17,6 +17,9 @@ var hp := 100.0
 var hp_maks := 100.0
 var sudah_mati := false
 
+var nama := "?"
+var parts_loaded := 0
+
 var rig: Node2D = null
 var _k := 1.0
 var _face := 1.0
@@ -31,6 +34,7 @@ func _ready() -> void:
 
 func _bangun_rig() -> void:
 	var idx := Karakter.dipilih
+	nama = Karakter.nama_dipilih()
 	_weapon_tex = Karakter.tekstur(idx, "Weapon")
 	rig = Node2D.new()
 	rig.name = "Rig"
@@ -51,13 +55,32 @@ func _bangun_rig() -> void:
 	_tambah(body, Vector2.ZERO)
 	_tambah(head, Vector2(0.0, -bh * 0.5 - hh * 0.2))
 
+	if parts_loaded == 0:
+		_fallback()
+
 	var total_h := bh + hh * 0.7
 	_k = TARGET_TINGGI / maxf(1.0, total_h)
 	rig.scale = Vector2(_k, _k)
 
+func _fallback() -> void:
+	# Bentuk cadangan kalau sprite gagal load (biar pemain selalu kelihatan).
+	var b := Polygon2D.new()
+	b.polygon = PackedVector2Array([Vector2(-30, -45), Vector2(30, -45), Vector2(30, 45), Vector2(-30, 45)])
+	b.color = Color(0.30, 0.65, 1.0)
+	rig.add_child(b)
+	var pts := PackedVector2Array()
+	for i in 16:
+		var a := TAU * float(i) / 16.0
+		pts.append(Vector2(cos(a), sin(a)) * 22.0 + Vector2(0, -66))
+	var h := Polygon2D.new()
+	h.polygon = pts
+	h.color = Color(1.0, 0.85, 0.6)
+	rig.add_child(h)
+
 func _tambah(tex: Texture2D, pos: Vector2) -> void:
 	if tex == null:
 		return
+	parts_loaded += 1
 	var s := Sprite2D.new()
 	s.texture = tex
 	s.position = pos

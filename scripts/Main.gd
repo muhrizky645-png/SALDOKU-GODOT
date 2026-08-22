@@ -10,6 +10,7 @@ var over := false
 var _lbl_skor: Label = null
 var _lbl_hp: Label = null
 var _lbl_waktu: Label = null
+var _lbl_dbg: Label = null
 
 func _ready() -> void:
 	add_to_group("main")
@@ -49,6 +50,7 @@ func _bangun_ui() -> void:
 	_lbl_skor = _mk_label(cl, Vector2(40, 40), 52)
 	_lbl_hp = _mk_label(cl, Vector2(40, 110), 44)
 	_lbl_waktu = _mk_label(cl, Vector2(40, 172), 44)
+	_lbl_dbg = _mk_label(cl, Vector2(40, 234), 32)
 
 func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
 	var l := Label.new()
@@ -59,12 +61,24 @@ func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
 	return l
 
 func _update_ui() -> void:
+	var hidup := player != null and is_instance_valid(player)
 	if _lbl_skor != null:
 		_lbl_skor.text = "SKOR: %d" % skor
-	if _lbl_hp != null and player != null and is_instance_valid(player):
-		_lbl_hp.text = "NYAWA: %d" % int(maxf(0.0, player.hp))
+	if _lbl_hp != null:
+		if hidup:
+			_lbl_hp.text = "NYAWA: %d" % int(maxf(0.0, player.hp))
+		else:
+			_lbl_hp.text = "NYAWA: -"
 	if _lbl_waktu != null:
 		_lbl_waktu.text = "WAKTU: %02d:%02d" % [int(waktu) / 60, int(waktu) % 60]
+	if _lbl_dbg != null:
+		var nm := "?"
+		var pl := -1
+		if hidup:
+			nm = str(player.nama)
+			pl = int(player.parts_loaded)
+		var jml_musuh := get_tree().get_nodes_in_group("musuh").size()
+		_lbl_dbg.text = "DBG hidup=%s nama=%s parts=%d/5 musuh=%d" % [str(hidup), nm, pl, jml_musuh]
 
 func tambah_skor(n: int) -> void:
 	skor += n

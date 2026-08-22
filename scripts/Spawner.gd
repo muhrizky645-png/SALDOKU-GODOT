@@ -1,6 +1,5 @@
 extends Node
-# Port ringkas dari ZombieSpawner.cs - spawn musuh mengelilingi pemain.
-# Kesulitan naik seiring waktu (baca Waktu.detik / GameTimer.Detik).
+# Port dari ZombieSpawner.cs (ringkas) - spawn musuh mengelilingi pemain + BOSS mengikuti waktu.
 
 var player: Node2D = null
 
@@ -9,6 +8,10 @@ var jarak := 950.0
 var maks_awal := 22
 var maks_mutlak := 90
 var sekaligus := 2
+
+var jeda_boss := 45.0
+var _boss_berikut := 45.0
+var _boss_ke := 0
 
 var _timer := 0.0
 var _elapsed := 0.0
@@ -22,7 +25,14 @@ func _process(delta: float) -> void:
 	else:
 		_elapsed += delta
 	var level := 1 + int(_elapsed / 20.0)
-	var jeda_now := maxf(0.25, jeda_awal - 0.06 * (level - 1))
+	var plevel := 1
+	var L = get_node_or_null("/root/Level")
+	if L != null:
+		plevel = L.level
+	if _elapsed >= _boss_berikut:
+		_boss_berikut += jeda_boss
+		_spawn_boss(plevel)
+	var jeda_now := maxf(0.25, jeda_awal - 0.06 * float(level - 1))
 	var maks_now := mini(maks_mutlak, maks_awal + 5 * (level - 1))
 	_timer += delta
 	if _timer >= jeda_now:
@@ -33,14 +43,29 @@ func _process(delta: float) -> void:
 func _spawn(level: int, maks_now: int) -> void:
 	if get_tree().get_nodes_in_group("musuh").size() >= maks_now:
 		return
-	var a := randf() * TAU
-	var pos := player.global_position + Vector2(cos(a), sin(a)) * jarak
-	var e = preload("res://scripts/Enemy.gd").new()
-	var spd := 90.0 + randf() * 55.0 + float(level) * 4.0
-	var life := 1 + int(level / 3)
-	e.setup(player, spd, life, 10, 30.0)
 	var main = get_tree().get_first_node_in_group("main")
 	if main == null:
 		return
+	var a := randf() * TAU
+	var pos := player.global_position + Vector2(cos(a), sin(a)) * jarak
+	var e = load("res://scripts/Enemy.gd").new()
+	var spd := 90.0 + randf() * 55.0 + float(level) * 4.0
+	var life := 1 + int(level / 3)
+	e.setup(player, spd, life, 10, 30.0)
+	main.add_child(e)
+	e.global_position = pos
+
+func _spawn_boss(plevel: int) -> void:
+	var main = get_tree().get_first_node_in_group("main")
+	if main == null:
+		return
+	_boss_ke += 1
+	var a := randf() * TAU
+	var pos := player.global_position + Vector2(cos(a), sin(a)) * jarak
+	var e = load("res://scripts/Enemy.gd").new()
+	var nyawa := 60 + plevel * 8 + (_boss_ke - 1) * 40
+	e.bos = true
+	e.setup(player, 130.0, nyawa, 500, 60.0)
+	e.xp = 25
 	main.add_child(e)
 	e.global_position = pos

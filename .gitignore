@@ -1,0 +1,14 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+
+# Exported / build artifacts
+/build/
+/builds/
+export.cfg
+export_credentials.cfg
+
+# Misc
+*.tmp
+*.log
+.DS_Store

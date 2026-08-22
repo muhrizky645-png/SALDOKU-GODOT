@@ -19,20 +19,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup export templates & editor config
+      - name: Siapkan export templates
         run: |
-          mkdir -v -p ~/.local/share/godot/export_templates/
-          mkdir -v -p ~/.config/
-          mv /root/.config/godot ~/.config/godot
-          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p ~/.local/share/godot/export_templates/
+          cp -r /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ 2>/dev/null || true
+          echo "Isi folder export_templates:"
+          ls -la ~/.local/share/godot/export_templates/ || true
+
+      - name: Buat debug keystore & atur signing
+        run: |
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android \
+            -keystore "$PWD/debug.keystore" -storepass android \
+            -dname "CN=Android Debug,O=Android,C=US" -validity 9999 -deststoretype pkcs12
+          sed -i "s|keystore/debug=\"\"|keystore/debug=\"$PWD/debug.keystore\"|" export_presets.cfg
+          sed -i "s|keystore/debug_user=\"\"|keystore/debug_user=\"androiddebugkey\"|" export_presets.cfg
+          sed -i "s|keystore/debug_password=\"\"|keystore/debug_password=\"android\"|" export_presets.cfg
+          echo "--- export_presets.cfg keystore lines ---"
+          grep keystore export_presets.cfg || true
 
       - name: Import project
         run: godot --headless --import || true
 
       - name: Build Android debug APK
         run: |
-          mkdir -v -p build/android
+          mkdir -p build/android
           godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk
+          echo "--- Hasil build ---"
+          ls -la build/android/ || true
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

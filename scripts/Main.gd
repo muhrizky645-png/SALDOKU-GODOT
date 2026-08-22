@@ -1,7 +1,7 @@
 extends Node2D
 # Orkestrator Fase 1: kamera ikut pemain, spawner, HUD, joystick.
 
-const VER := "MIN9"
+const VER := "ISO10"
 
 var player = null
 var camera: Camera2D = null
@@ -19,7 +19,7 @@ func _ready() -> void:
 	add_to_group("main")
 	RenderingServer.set_default_clear_color(Color(0.12, 0.13, 0.18))
 
-	for nm in ["KarakterData", "Bullet", "Enemy", "Spawner", "Joystick", "Player"]:
+	for nm in ["PlayerA", "PlayerB", "PlayerC"]:
 		_cek(nm)
 
 	camera = Camera2D.new()

@@ -19,12 +19,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Siapkan export templates
+      - name: Siapkan editor config + export templates
         run: |
+          mkdir -p ~/.config/
+          cp -r /root/.config/godot ~/.config/godot 2>/dev/null || true
           mkdir -p ~/.local/share/godot/export_templates/
           cp -r /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ 2>/dev/null || true
-          echo "Isi folder export_templates:"
+          echo "--- export_templates ---"
           ls -la ~/.local/share/godot/export_templates/ || true
+          echo "--- config/godot ---"
+          ls -la ~/.config/godot/ || true
 
       - name: Buat debug keystore & atur signing
         run: |
@@ -34,7 +38,7 @@ jobs:
           sed -i "s|keystore/debug=\"\"|keystore/debug=\"$PWD/debug.keystore\"|" export_presets.cfg
           sed -i "s|keystore/debug_user=\"\"|keystore/debug_user=\"androiddebugkey\"|" export_presets.cfg
           sed -i "s|keystore/debug_password=\"\"|keystore/debug_password=\"android\"|" export_presets.cfg
-          echo "--- export_presets.cfg keystore lines ---"
+          echo "--- keystore lines ---"
           grep keystore export_presets.cfg || true
 
       - name: Import project

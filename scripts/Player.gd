@@ -21,7 +21,7 @@ var _k := 1.0
 var _face := 1.0
 var _t := 0.0
 var _weapon_tex: Texture2D = null
-const TARGET_TINGGI := 210.0
+const TARGET_TINGGI := 130.0
 
 func _ready() -> void:
 	add_to_group("player")

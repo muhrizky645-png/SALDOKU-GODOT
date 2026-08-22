@@ -33,21 +33,26 @@ func _ready() -> void:
 	_bangun_rig()
 
 func _bangun_rig() -> void:
-	var idx := Karakter.dipilih
+	var idx: int = Karakter.dipilih
 	nama = Karakter.nama_dipilih()
 	_weapon_tex = Karakter.tekstur(idx, "Weapon")
 	rig = Node2D.new()
 	rig.name = "Rig"
 	add_child(rig)
 
-	var body := Karakter.tekstur(idx, "Body")
-	var head := Karakter.tekstur(idx, "Head")
-	var lfoot := Karakter.tekstur(idx, "Left_Foot")
-	var rfoot := Karakter.tekstur(idx, "Right_Foot")
+	var body: Texture2D = Karakter.tekstur(idx, "Body")
+	var head: Texture2D = Karakter.tekstur(idx, "Head")
+	var lfoot: Texture2D = Karakter.tekstur(idx, "Left_Foot")
+	var rfoot: Texture2D = Karakter.tekstur(idx, "Right_Foot")
 
-	var bw := float(body.get_width()) if body != null else 32.0
-	var bh := float(body.get_height()) if body != null else 48.0
-	var hh := float(head.get_height()) if head != null else 28.0
+	var bw := 32.0
+	var bh := 48.0
+	var hh := 28.0
+	if body != null:
+		bw = float(body.get_width())
+		bh = float(body.get_height())
+	if head != null:
+		hh = float(head.get_height())
 
 	_tambah(rfoot, Vector2(bw * 0.22, bh * 0.45))
 	_tambah(lfoot, Vector2(-bw * 0.22, bh * 0.45))
@@ -59,19 +64,20 @@ func _bangun_rig() -> void:
 		_fallback()
 
 	var total_h := bh + hh * 0.7
-	_k = TARGET_TINGGI / maxf(1.0, total_h)
+	if total_h < 1.0:
+		total_h = 1.0
+	_k = TARGET_TINGGI / total_h
 	rig.scale = Vector2(_k, _k)
 
 func _fallback() -> void:
-	# Bentuk cadangan kalau sprite gagal load (biar pemain selalu kelihatan).
 	var b := Polygon2D.new()
 	b.polygon = PackedVector2Array([Vector2(-30, -45), Vector2(30, -45), Vector2(30, 45), Vector2(-30, 45)])
 	b.color = Color(0.30, 0.65, 1.0)
 	rig.add_child(b)
 	var pts := PackedVector2Array()
 	for i in 16:
-		var a := TAU * float(i) / 16.0
-		pts.append(Vector2(cos(a), sin(a)) * 22.0 + Vector2(0, -66))
+		var ang := TAU * float(i) / 16.0
+		pts.append(Vector2(cos(ang), sin(ang)) * 22.0 + Vector2(0, -66))
 	var h := Polygon2D.new()
 	h.polygon = pts
 	h.color = Color(1.0, 0.85, 0.6)
@@ -103,7 +109,8 @@ func _process(delta: float) -> void:
 		dir.y += 1.0
 	var joy = get_tree().get_first_node_in_group("joystick")
 	if joy != null:
-		dir += joy.direction
+		var jd: Vector2 = joy.direction
+		dir += jd
 	dir = dir.limit_length(1.0)
 
 	global_position += dir * speed * delta
@@ -133,8 +140,10 @@ func _process(delta: float) -> void:
 		_tembak = fire_rate
 
 	for e in get_tree().get_nodes_in_group("musuh"):
-		if is_instance_valid(e) and global_position.distance_to(e.global_position) < 72.0:
-			hp -= 14.0 * delta
+		if is_instance_valid(e):
+			var em: Node2D = e
+			if global_position.distance_to(em.global_position) < 72.0:
+				hp -= 14.0 * delta
 
 	if hp <= 0.0 and not sudah_mati:
 		sudah_mati = true
@@ -151,10 +160,11 @@ func _tembak_sekarang() -> void:
 	for z in musuh:
 		if not is_instance_valid(z):
 			continue
-		var d := global_position.distance_to(z.global_position)
+		var zm: Node2D = z
+		var d := global_position.distance_to(zm.global_position)
 		if d < jd:
 			jd = d
-			terdekat = z
+			terdekat = zm
 	if terdekat == null:
 		return
 	var arah := (terdekat.global_position - global_position).normalized()
@@ -165,8 +175,7 @@ func _tembak_sekarang() -> void:
 	if main == null:
 		return
 	for i in n:
-		var ang := mulai + float(i) * sudut_sebar
-		var ap := arah.rotated(ang)
+		var ap := arah.rotated(mulai + float(i) * sudut_sebar)
 		var b = preload("res://scripts/Bullet.gd").new()
 		b.setup(_weapon_tex, ap)
 		main.add_child(b)

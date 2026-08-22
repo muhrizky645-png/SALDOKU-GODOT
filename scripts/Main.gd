@@ -6,6 +6,7 @@ var camera: Camera2D = null
 var skor := 0
 var waktu := 0.0
 var over := false
+var _dbg_err := ""
 
 var _lbl_skor: Label = null
 var _lbl_hp: Label = null
@@ -22,14 +23,24 @@ func _ready() -> void:
 	camera.enabled = true
 	camera.make_current()
 
-	player = preload("res://scripts/Player.gd").new()
-	add_child(player)
-	player.global_position = Vector2.ZERO
+	var ps = load("res://scripts/Player.gd")
+	if ps == null:
+		_dbg_err = "PlayerScript=null"
+	else:
+		player = ps.new()
+		if player == null:
+			_dbg_err = "PlayerNew=null(compile?)"
+	if player != null:
+		add_child(player)
+		player.global_position = Vector2.ZERO
 	camera.global_position = Vector2.ZERO
 
-	var sp = preload("res://scripts/Spawner.gd").new()
-	sp.player = player
-	add_child(sp)
+	var spr = load("res://scripts/Spawner.gd")
+	if spr != null:
+		var sp = spr.new()
+		if sp != null:
+			sp.player = player
+			add_child(sp)
 
 	_bangun_ui()
 
@@ -44,13 +55,15 @@ func _bangun_ui() -> void:
 	var cl := CanvasLayer.new()
 	add_child(cl)
 
-	var joy = preload("res://scripts/Joystick.gd").new()
-	cl.add_child(joy)
+	var jr = load("res://scripts/Joystick.gd")
+	if jr != null:
+		var joy = jr.new()
+		cl.add_child(joy)
 
 	_lbl_skor = _mk_label(cl, Vector2(40, 40), 52)
 	_lbl_hp = _mk_label(cl, Vector2(40, 110), 44)
 	_lbl_waktu = _mk_label(cl, Vector2(40, 172), 44)
-	_lbl_dbg = _mk_label(cl, Vector2(40, 234), 32)
+	_lbl_dbg = _mk_label(cl, Vector2(40, 234), 30)
 
 func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
 	var l := Label.new()
@@ -72,13 +85,11 @@ func _update_ui() -> void:
 	if _lbl_waktu != null:
 		_lbl_waktu.text = "WAKTU: %02d:%02d" % [int(waktu) / 60, int(waktu) % 60]
 	if _lbl_dbg != null:
-		var nm := "?"
 		var pl := -1
 		if hidup:
-			nm = str(player.nama)
 			pl = int(player.parts_loaded)
-		var jml_musuh := get_tree().get_nodes_in_group("musuh").size()
-		_lbl_dbg.text = "DBG hidup=%s nama=%s parts=%d/5 musuh=%d" % [str(hidup), nm, pl, jml_musuh]
+		var jml := get_tree().get_nodes_in_group("musuh").size()
+		_lbl_dbg.text = "DBG hidup=%s parts=%d/5 musuh=%d err=%s" % [str(hidup), pl, jml, _dbg_err]
 
 func tambah_skor(n: int) -> void:
 	skor += n

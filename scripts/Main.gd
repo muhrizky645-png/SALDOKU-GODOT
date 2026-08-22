@@ -1,7 +1,7 @@
 extends Node2D
-# Orkestrator Fase 1-B: kamera ikut pemain, spawner, HUD, reset semua sistem global.
+# Orkestrator Fase 1-C: kamera ikut pemain, spawner, HUD, bar nyawa BOSS, reset semua sistem global.
 
-const VER := "ISO12B"
+const VER := "ISO13C"
 const BAR_W := 360.0
 const BAR_H := 26.0
 
@@ -17,6 +17,10 @@ var _lbl_skor: Label = null
 var _lbl_hp: Label = null
 var _lbl_waktu: Label = null
 var _lbl_dbg: Label = null
+
+var _lbl_boss: Label = null
+var _boss_bg: ColorRect = null
+var _boss_fill: ColorRect = null
 
 func _ready() -> void:
 	add_to_group("main")
@@ -109,6 +113,40 @@ func _bangun_ui() -> void:
 	_lbl_waktu.offset_bottom = 100.0
 	cl.add_child(_lbl_waktu)
 
+	_lbl_boss = Label.new()
+	_lbl_boss.add_theme_font_size_override("font_size", 32)
+	_lbl_boss.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
+	_lbl_boss.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lbl_boss.anchor_left = 0.0
+	_lbl_boss.anchor_right = 1.0
+	_lbl_boss.offset_top = 320.0
+	_lbl_boss.offset_bottom = 360.0
+	_lbl_boss.text = "BOSS"
+	_lbl_boss.visible = false
+	cl.add_child(_lbl_boss)
+
+	_boss_bg = ColorRect.new()
+	_boss_bg.color = Color(0, 0, 0, 0.55)
+	_boss_bg.anchor_left = 0.5
+	_boss_bg.anchor_right = 0.5
+	_boss_bg.offset_left = -300.0
+	_boss_bg.offset_right = 300.0
+	_boss_bg.offset_top = 364.0
+	_boss_bg.offset_bottom = 392.0
+	_boss_bg.visible = false
+	cl.add_child(_boss_bg)
+
+	_boss_fill = ColorRect.new()
+	_boss_fill.color = Color(1.0, 0.3, 0.3, 0.95)
+	_boss_fill.anchor_left = 0.5
+	_boss_fill.anchor_right = 0.5
+	_boss_fill.offset_left = -298.0
+	_boss_fill.offset_right = 298.0
+	_boss_fill.offset_top = 366.0
+	_boss_fill.offset_bottom = 390.0
+	_boss_fill.visible = false
+	cl.add_child(_boss_fill)
+
 func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
 	var l := Label.new()
 	l.position = pos
@@ -135,8 +173,10 @@ func _update_ui() -> void:
 		_lbl_hp.text = "NYAWA %d" % hpv
 	if _lbl_waktu != null and W != null:
 		_lbl_waktu.text = W.teks()
+	_update_boss_bar()
 	if _lbl_dbg != null:
 		var jml := get_tree().get_nodes_in_group("musuh").size()
+		var nb := get_tree().get_nodes_in_group("bos").size()
 		var lv := 0
 		if L != null:
 			lv = L.level
@@ -147,7 +187,23 @@ func _update_ui() -> void:
 		var Sen = get_node_or_null("/root/Senjata")
 		if Sen != null:
 			sinfo = "O%d A%d R%d" % [Sen.lv_orbit, Sen.lv_aura, Sen.lv_roket]
-		_lbl_dbg.text = "DBG %s hidup=%s parts=%d musuh=%d lv=%d %s [%s]" % [VER, str(hidup), pl, jml, lv, sinfo, _diag]
+		_lbl_dbg.text = "DBG %s hidup=%s parts=%d musuh=%d bos=%d lv=%d %s [%s]" % [VER, str(hidup), pl, jml, nb, lv, sinfo, _diag]
+
+func _update_boss_bar() -> void:
+	var bos = get_tree().get_first_node_in_group("bos")
+	var ada_bos: bool = bos != null and is_instance_valid(bos)
+	if _lbl_boss != null:
+		_lbl_boss.visible = ada_bos
+	if _boss_bg != null:
+		_boss_bg.visible = ada_bos
+	if _boss_fill != null:
+		_boss_fill.visible = ada_bos
+		if ada_bos:
+			var rasio := 0.0
+			if bos.nyawa_maks > 0:
+				rasio = clampf(float(bos.hp) / float(bos.nyawa_maks), 0.0, 1.0)
+			_boss_fill.offset_left = -298.0
+			_boss_fill.offset_right = -298.0 + 596.0 * rasio
 
 func game_over() -> void:
 	if over:

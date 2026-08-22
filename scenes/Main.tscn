@@ -1,23 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/Player.gd" id="1"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1"]
 
 [node name="Main" type="Node2D"]
-
-[node name="Camera2D" type="Camera2D" parent="."]
-
-[node name="Player" type="Node2D" parent="."]
 script = ExtResource("1")
-
-[node name="Sprite2D" type="Sprite2D" parent="Player"]
-texture = ExtResource("2")
-
-[node name="UI" type="CanvasLayer" parent="."]
-
-[node name="Judul" type="Label" parent="UI"]
-offset_left = 40.0
-offset_top = 40.0
-offset_right = 800.0
-offset_bottom = 120.0
-text = "SALDOKU (Godot) v0.1 - sentuh untuk gerak"

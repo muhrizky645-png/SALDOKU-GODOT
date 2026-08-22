@@ -17,6 +17,9 @@ Karakter="*res://scripts/KarakterData.gd"
 Skor="*res://scripts/Skor.gd"
 Level="*res://scripts/Level.gd"
 Waktu="*res://scripts/Waktu.gd"
+Skill="*res://scripts/Skill.gd"
+Senjata="*res://scripts/Senjata.gd"
+Dewa="*res://scripts/Dewa.gd"
 
 [display]
 

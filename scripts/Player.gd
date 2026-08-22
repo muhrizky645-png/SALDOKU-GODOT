@@ -1,5 +1,5 @@
 extends Node2D
-# VERSI LENGKAP: rig sprite Ninja + gerak WASD/joystick + tembak. VER PLNG2.
+# VERSI LENGKAP: rig sprite Ninja + gerak WASD/joystick + tembak + integrasi Mode Dewa.
 
 var speed := 340.0
 var bob_amount := 0.08
@@ -123,15 +123,19 @@ func _process(delta: float) -> void:
 			rig.rotation = sin(_t * goyang_kecepatan) * goyang_sudut
 		else:
 			rig.rotation = lerp_angle(rig.rotation, 0.0, delta * 12.0)
+	var dw = get_node_or_null("/root/Dewa")
+	var dewa_on: bool = dw != null and dw.aktif
 	_tembak -= delta
 	if _tembak <= 0.0:
 		_tembak_sekarang()
-		_tembak = fire_rate
-	for e in get_tree().get_nodes_in_group("musuh"):
-		if is_instance_valid(e):
-			var em := e as Node2D
-			if em != null and global_position.distance_to(em.global_position) < 72.0:
-				hp -= 14.0 * delta
+		var cepat: float = 0.12 if dewa_on else 1.0
+		_tembak = fire_rate * cepat
+	if not dewa_on:
+		for e in get_tree().get_nodes_in_group("musuh"):
+			if is_instance_valid(e):
+				var em := e as Node2D
+				if em != null and global_position.distance_to(em.global_position) < 72.0:
+					hp -= 14.0 * delta
 	if hp <= 0.0 and not sudah_mati:
 		sudah_mati = true
 		var main = get_tree().get_first_node_in_group("main")
@@ -142,8 +146,10 @@ func _tembak_sekarang() -> void:
 	var musuh := get_tree().get_nodes_in_group("musuh")
 	if musuh.is_empty():
 		return
+	var dw = get_node_or_null("/root/Dewa")
+	var dewa_on: bool = dw != null and dw.aktif
 	var terdekat: Node2D = null
-	var jarak := range_tembak
+	var jarak: float = range_tembak * (4.0 if dewa_on else 1.0)
 	for z in musuh:
 		if not is_instance_valid(z):
 			continue
@@ -157,7 +163,7 @@ func _tembak_sekarang() -> void:
 	if terdekat == null:
 		return
 	var arah := (terdekat.global_position - global_position).normalized()
-	var n := maxi(1, jumlah_peluru)
+	var n: int = maxi(1, jumlah_peluru + (10 if dewa_on else 0))
 	var total := float(n - 1) * sudut_sebar
 	var mulai := -total / 2.0
 	var main = get_tree().get_first_node_in_group("main")

@@ -1,5 +1,6 @@
 extends Node2D
-# Port dari XpGem.cs - permata XP jatuh saat musuh mati, lalu ketarik ke pemain.
+# Port dari XpGem.cs - permata XP jatuh saat musuh mati, ketarik ke pemain.
+# Jarak magnet dipengaruhi skill Magnet + Mode Dewa (magnet semesta).
 
 var nilai := 1
 var ukuran := 1.2
@@ -32,8 +33,17 @@ func _process(delta: float) -> void:
 			L.tambah_xp(nilai)
 		queue_free()
 		return
-	if d <= jarak_magnet:
-		global_position = global_position.move_toward(_player.global_position, kecepatan_tarik * delta)
+	var jm := jarak_magnet
+	var kt := kecepatan_tarik
+	var Sk = get_node_or_null("/root/Skill")
+	if Sk != null:
+		jm *= Sk.magnet_mult
+	var dw = get_node_or_null("/root/Dewa")
+	if dw != null and dw.aktif:
+		jm = 99999.0
+		kt = maxf(kt, 1400.0)
+	if d <= jm:
+		global_position = global_position.move_toward(_player.global_position, kt * delta)
 
 func _draw() -> void:
 	var c := Color(0.4 * _kilau, 1.0 * _kilau, 1.0, 1.0)

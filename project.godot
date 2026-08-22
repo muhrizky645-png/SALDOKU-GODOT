@@ -20,7 +20,7 @@ Karakter="*res://scripts/KarakterData.gd"
 window/size/viewport_width=1080
 window/size/viewport_height=1920
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep"
 window/handheld/orientation="portrait"
 
 [input_devices]

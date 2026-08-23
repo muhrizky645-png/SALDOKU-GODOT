@@ -2,7 +2,7 @@ extends Node2D
 # Orkestrator: kamera ikut pemain, spawner, HUD gaya Unity (plate + font pixel Thaleah), reset sistem global.
 # HUD dihitung ulang biar SAMA dengan Unity (Unit=1080): panel LEVEL + bar XP cyan,
 # plat SKOR (angka saja), plat TIMER (MM:SS), bar BOSS. Font pixel dari Tema.font_utama().
-# Latar: kertas prosedural bertekstur (pengganti hijau polos), di-tile & ikut kamera.
+# Latar: rumput prosedural bertekstur (helai rumput), di-tile & ikut kamera.
 
 const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
 
@@ -113,32 +113,49 @@ func _process(delta: float) -> void:
 	_perbarui_latar()
 	_update_ui()
 
-# ====== LATAR KERTAS PROSEDURAL ======
-func _buat_tekstur_kertas() -> ImageTexture:
+# ====== LATAR RUMPUT PROSEDURAL ======
+func _buat_tekstur_rumput() -> ImageTexture:
 	var n := 128
 	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20240823
+	var dasar := Color(0.30, 0.62, 0.29)
+	# 1) dasar rumput: variasi petak lembut + noise halus
 	for y in n:
 		for x in n:
-			var c := LATAR
-			# serat kertas: noise halus per-piksel
-			var v := rng.randf_range(-0.035, 0.035)
-			c = Color(clampf(c.r + v, 0.0, 1.0), clampf(c.g + v, 0.0, 1.0), clampf(c.b + v, 0.0, 1.0), 1.0)
-			# bercak lembut (mottling) 16px, tile mulus
-			if (int(x / 16) + int(y / 16)) % 2 == 0:
-				c = c.lightened(0.018)
+			var c := dasar
+			var v := rng.randf_range(-0.03, 0.03)
+			c = Color(clampf(c.r + v, 0.0, 1.0), clampf(c.g + v * 1.2, 0.0, 1.0), clampf(c.b + v, 0.0, 1.0), 1.0)
+			if (int(x / 24) + int(y / 24)) % 2 == 0:
+				c = c.darkened(0.05)
 			else:
-				c = c.darkened(0.012)
-			# garis grid samar tiap 32px
-			if x % 32 == 0 or y % 32 == 0:
-				c = c.darkened(0.07)
+				c = c.lightened(0.03)
 			img.set_pixel(x, y, c)
+	# 2) helai rumput: goresan vertikal pendek terang/gelap (jauh dari tepi biar tile mulus)
+	var jml := 300
+	for i in jml:
+		var bx := rng.randi_range(2, n - 3)
+		var by := rng.randi_range(7, n - 3)
+		var tinggi := rng.randi_range(3, 7)
+		var warna: Color
+		if rng.randf() < 0.5:
+			warna = dasar.lightened(rng.randf_range(0.12, 0.30))
+		else:
+			warna = dasar.darkened(rng.randf_range(0.12, 0.28))
+		var lebar: int = 1 if rng.randf() < 0.7 else 2
+		for t in tinggi:
+			var yy := by - t
+			if yy < 0:
+				break
+			for lw in lebar:
+				var xx := bx + lw
+				if xx >= 0 and xx < n and yy >= 0 and yy < n:
+					img.set_pixel(xx, yy, warna)
 	return ImageTexture.create_from_image(img)
 
 func _bangun_latar() -> void:
 	_latar = Sprite2D.new()
-	_latar.texture = _buat_tekstur_kertas()
+	_latar.texture = _buat_tekstur_rumput()
 	_latar.centered = true
 	_latar.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	_latar.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

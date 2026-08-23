@@ -2,6 +2,12 @@ extends Node
 # Autoload "Sound" - port dari SoundManager.cs.
 # Musik + SFX di-GENERATE lewat kode (tanpa file audio), pakai AudioStreamWAV 16-bit.
 
+# --- SAKELAR DIAGNOSTIK ---
+# Musik loop sementara DIMATIKAN karena diduga bikin force-close di device Mali.
+# Kalau game stabil dengan ini false, berarti musik biang keroknya.
+const MUSIK_AKTIF := false
+const EFEK_AKTIF := true
+
 const SR := 22050
 const BASE_MUSIK := 0.5
 const _PATH := "user://saldoku.cfg"
@@ -27,16 +33,18 @@ var _c_klik: AudioStreamWAV = null
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_muat()
-	_buat_semua_suara()
-	_musik = AudioStreamPlayer.new()
-	_musik.stream = _buat_musik()
-	add_child(_musik)
-	_terapkan_musik()
-	_musik.play()
-	for i in 8:
-		var p := AudioStreamPlayer.new()
-		add_child(p)
-		_pool.append(p)
+	if EFEK_AKTIF:
+		_buat_semua_suara()
+		for i in 8:
+			var p := AudioStreamPlayer.new()
+			add_child(p)
+			_pool.append(p)
+	if MUSIK_AKTIF:
+		_musik = AudioStreamPlayer.new()
+		_musik.stream = _buat_musik()
+		add_child(_musik)
+		_terapkan_musik()
+		_musik.play()
 
 func _muat() -> void:
 	var cfg := ConfigFile.new()

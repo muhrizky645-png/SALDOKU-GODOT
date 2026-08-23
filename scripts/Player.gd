@@ -1,5 +1,5 @@
 extends Node2D
-# VERSI LENGKAP: rig sprite Ninja + gerak WASD/joystick + tembak + integrasi Mode Dewa.
+# VERSI LENGKAP: rig sprite karakter + gerak WASD/joystick + tembak + integrasi Mode Dewa.
 
 var speed := 340.0
 var bob_amount := 0.08
@@ -22,7 +22,8 @@ var _face := 1.0
 var _t := 0.0
 var _t_kena := 0.0
 var _weapon_tex: Texture2D = null
-const TARGET_TINGGI := 130.0
+const TARGET_TINGGI := 96.0
+const SENJATA_SKALA := 0.68
 
 func _ready() -> void:
 	add_to_group("player")
@@ -54,7 +55,7 @@ func _bangun_rig() -> void:
 		hh = float(head.get_height())
 	_tambah(rfoot, Vector2(bw * 0.22, bh * 0.45))
 	_tambah(lfoot, Vector2(-bw * 0.22, bh * 0.45))
-	_tambah(_weapon_tex, Vector2(bw * 0.5, bh * 0.05))
+	_tambah_senjata(_weapon_tex, Vector2(bw * 0.5, bh * 0.05))
 	_tambah(body, Vector2.ZERO)
 	_tambah(head, Vector2(0.0, -bh * 0.5 - hh * 0.2))
 	if parts_loaded == 0:
@@ -86,6 +87,17 @@ func _tambah(tex: Texture2D, pos: Vector2) -> void:
 	var s := Sprite2D.new()
 	s.texture = tex
 	s.position = pos
+	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rig.add_child(s)
+
+func _tambah_senjata(tex: Texture2D, pos: Vector2) -> void:
+	if tex == null:
+		return
+	parts_loaded += 1
+	var s := Sprite2D.new()
+	s.texture = tex
+	s.position = pos
+	s.scale = Vector2(SENJATA_SKALA, SENJATA_SKALA)
 	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	rig.add_child(s)
 

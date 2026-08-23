@@ -1,6 +1,7 @@
 extends Node2D
 # Port dari ItemLapangan.cs - item jatuh di lapangan, dipungut saat disentuh.
 # Bom: bunuh semua musuh + kilat. Magnet: tarik semua permata XP. Peti: XP besar (naik level).
+# Visual pakai ikon prosedural dari Ikon (autoload), fallback gambar manual bila Ikon tak ada.
 
 enum Jenis { BOM, MAGNET, PETI }
 var jenis := Jenis.BOM
@@ -12,6 +13,8 @@ var jarak_magnet := 220.0
 var kecepatan := 800.0
 var _ukuran := 0.9
 var _warna := Color(1.0, 0.5, 0.3)
+var _sprite: Sprite2D = null
+var _skala_dasar := 0.85
 
 func setup(j: int) -> void:
 	jenis = j
@@ -30,10 +33,31 @@ func _ready() -> void:
 		_:
 			_warna = Color(1.0, 0.82, 0.3)
 			_ukuran = 1.1
+	var ikon = get_node_or_null("/root/Ikon")
+	if ikon != null:
+		var nid = "peti"
+		match jenis:
+			Jenis.BOM:
+				nid = "bom"
+			Jenis.MAGNET:
+				nid = "magnet"
+			_:
+				nid = "peti"
+		var tex = ikon.untuk_item(nid)
+		if tex != null:
+			_sprite = Sprite2D.new()
+			_sprite.texture = tex
+			_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			_sprite.scale = Vector2(_skala_dasar, _skala_dasar) * _ukuran
+			add_child(_sprite)
 
 func _process(delta: float) -> void:
 	_t += delta
-	queue_redraw()
+	if _sprite != null:
+		var denyut := 1.0 + 0.1 * sin(_t * 5.0)
+		_sprite.scale = Vector2(_skala_dasar, _skala_dasar) * _ukuran * denyut
+	else:
+		queue_redraw()
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as Node2D
 		if _player == null:
@@ -71,6 +95,8 @@ func _efek() -> void:
 				L.tambah_xp(maxi(5, L.xp_untuk_naik))
 
 func _draw() -> void:
+	if _sprite != null:
+		return
 	var denyut := 1.0 + 0.1 * sin(_t * 5.0)
 	var s := _ukuran * denyut
 	match jenis:

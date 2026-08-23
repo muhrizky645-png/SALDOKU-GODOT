@@ -87,6 +87,7 @@ func _tampilkan(pilihan: Array) -> void:
 	vb.offset_top = -280.0
 	vb.offset_bottom = 280.0
 	_layer.add_child(vb)
+	var ikon = get_node_or_null("/root/Ikon")
 	for s in pilihan:
 		var btn := Button.new()
 		var cur: int = int(_tingkat.get(s["nama"], 0))
@@ -100,6 +101,13 @@ func _tampilkan(pilihan: Array) -> void:
 		btn.text = "%s  [%s]\n%s" % [s["nama"], tk, s["deskripsi"]]
 		btn.add_theme_font_size_override("font_size", 32)
 		btn.custom_minimum_size = Vector2(840, 150)
+		if ikon != null:
+			var tex = ikon.untuk_skill(s["id"])
+			if tex != null:
+				btn.icon = tex
+				btn.expand_icon = true
+				btn.add_theme_constant_override("icon_max_width", 96)
+				btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 		btn.pressed.connect(_pilih.bind(s))
 		vb.add_child(btn)
 

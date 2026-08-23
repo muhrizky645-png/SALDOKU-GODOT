@@ -2,10 +2,10 @@ extends Node
 # Autoload "Sound" - port dari SoundManager.cs.
 # Musik + SFX di-GENERATE lewat kode (tanpa file audio), pakai AudioStreamWAV 16-bit.
 
-# --- SAKELAR DIAGNOSTIK ---
-# Musik loop sementara DIMATIKAN karena diduga bikin force-close di device Mali.
-# Kalau game stabil dengan ini false, berarti musik biang keroknya.
-const MUSIK_AKTIF := false
+# --- SAKELAR ---
+# Musik: loop TIDAK pakai LOOP_FORWARD bawaan (bikin native crash di device Mali),
+# tapi di-putar-ulang manual lewat sinyal `finished`.
+const MUSIK_AKTIF := true
 const EFEK_AKTIF := true
 
 const SR := 22050
@@ -43,7 +43,12 @@ func _ready() -> void:
 		_musik = AudioStreamPlayer.new()
 		_musik.stream = _buat_musik()
 		add_child(_musik)
+		_musik.finished.connect(_ulang_musik)
 		_terapkan_musik()
+		_musik.play()
+
+func _ulang_musik() -> void:
+	if MUSIK_AKTIF and _musik != null:
 		_musik.play()
 
 func _muat() -> void:
@@ -200,7 +205,8 @@ func _buat_musik() -> AudioStreamWAV:
 		for k in 4:
 			var f := 440.0 * pow(2.0, float(bass_root[bar]) / 12.0)
 			_tulis_nada(buf, int((float(bar) * 2.0 + float(k) * 0.5) * SR), f, 0.45, 0.16, 2)
-	return _wav(buf, true)
+	# non-loop; pengulangan lewat sinyal finished (_ulang_musik) biar aman di Android
+	return _wav(buf, false)
 
 func _wav(buf: PackedFloat32Array, loop: bool) -> AudioStreamWAV:
 	var bytes := PackedByteArray()

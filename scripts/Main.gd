@@ -1,9 +1,11 @@
 extends Node2D
 # Orkestrator Fase 1-C: kamera ikut pemain, spawner, HUD, bar nyawa BOSS, reset semua sistem global.
 
-const VER := "ISO13C"
+const VER := "ISO13D"
 const BAR_W := 360.0
 const BAR_H := 26.0
+# Warna "Paper_4" hijau dari scene Unity (SampleScene): RGB 0.327, 0.670, 0.313.
+const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
 
 var player = null
 var camera: Camera2D = null
@@ -24,7 +26,7 @@ var _boss_fill: ColorRect = null
 
 func _ready() -> void:
 	add_to_group("main")
-	RenderingServer.set_default_clear_color(Color(0.12, 0.13, 0.18))
+	RenderingServer.set_default_clear_color(LATAR)
 
 	for nm in ["Skor", "Level", "Waktu", "Skill", "Senjata", "Dewa"]:
 		var g = get_node_or_null("/root/" + nm)
@@ -209,6 +211,9 @@ func game_over() -> void:
 	if over:
 		return
 	over = true
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null:
+		snd.game_over()
 	var W = get_node_or_null("/root/Waktu")
 	if W != null:
 		W.jalan = false

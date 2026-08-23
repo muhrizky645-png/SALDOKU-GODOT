@@ -20,6 +20,7 @@ Waktu="*res://scripts/Waktu.gd"
 Skill="*res://scripts/Skill.gd"
 Senjata="*res://scripts/Senjata.gd"
 Dewa="*res://scripts/Dewa.gd"
+Sound="*res://scripts/SoundManager.gd"
 
 [display]
 

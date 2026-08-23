@@ -90,7 +90,20 @@ func _bangun_home() -> void:
 	v.add_child(_label("SALDOKU", Tema.font(0.13), Tema.TULANG))
 	v.add_child(_label("LAST STAND", Tema.font(0.055), Tema.AMBER))
 	_lbl_rekor = _label("REKOR 0", Tema.font(0.04), Tema.ARMY)
-	v.add_child(_panel(_lbl_rekor))
+	var rekor_box := HBoxContainer.new()
+	rekor_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	rekor_box.add_theme_constant_override("separation", 16)
+	var ikon = get_node_or_null("/root/Ikon")
+	if ikon != null:
+		var bintang := TextureRect.new()
+		bintang.texture = ikon.untuk_skill("bintang")
+		bintang.custom_minimum_size = Vector2(54, 54)
+		bintang.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bintang.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		bintang.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		rekor_box.add_child(bintang)
+	rekor_box.add_child(_lbl_rekor)
+	v.add_child(_panel(rekor_box))
 	var hb := HBoxContainer.new()
 	hb.alignment = BoxContainer.ALIGNMENT_CENTER
 	hb.add_theme_constant_override("separation", 30)

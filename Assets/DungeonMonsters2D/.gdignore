@@ -1,0 +1,3 @@
+# Folder aset Unity (sprite + .anim format Unity) yang TIDAK dipakai di port Godot.
+# Godot tidak bisa membaca file .anim Unity -> menimbulkan ratusan error 'Unrecognized binary resource'.
+# File ini menyuruh Godot mengabaikan seluruh folder ini saat impor. Aman dihapus jika kelak asetnya mau dipakai.

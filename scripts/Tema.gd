@@ -17,19 +17,54 @@ const REDUP := Color(0.72, 0.74, 0.64, 1.0)
 var langsung_main := false
 
 # ====== FONT PIXEL (Thaleah) ======
-# Taruh file TTF di salah satu path ini; kalau tidak ada, pakai font bawaan Godot.
+# Font pixel WAJIB anti-alias OFF biar tajam seperti Unity. Kita muat file TTF langsung
+# jadi FontFile lewat load_dynamic_font + setel crisp, jadi TIDAK tergantung setelan
+# import default Godot (yang menyalakan anti-alias -> teks jadi blur/beda).
+# Taruh file di salah satu path di bawah; kalau tak ada, pakai font bawaan Godot.
 var _font: Font = null
 var _font_dicari := false
 
+const _FONT_PATHS := [
+	"res://Assets/fonts/ThaleahFat.ttf",
+	"res://Assets/fonts/ThaleahPixel.ttf",
+	"res://assets/fonts/ThaleahFat.ttf",
+	"res://assets/fonts/ThaleahPixel.ttf",
+	"res://fonts/ThaleahFat.ttf",
+	"res://ThaleahFat.ttf",
+	"res://ThaleahPixel.ttf",
+]
+
+func _crisp(ff: FontFile) -> void:
+	ff.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+	ff.hinting = TextServer.HINTING_NONE
+	ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+	ff.force_autohinter = false
+	ff.multichannel_signed_distance_field = false
+	ff.allow_system_fallback = false
+
 func font_utama() -> Font:
-	if not _font_dicari:
-		_font_dicari = true
-		for p in ["res://Assets/fonts/ThaleahFat.ttf", "res://Assets/fonts/ThaleahPixel.ttf", "res://assets/fonts/ThaleahFat.ttf", "res://fonts/ThaleahFat.ttf", "res://ThaleahFat.ttf"]:
-			if ResourceLoader.exists(p):
-				var r = load(p)
-				if r is Font:
-					_font = r
-					break
+	if _font_dicari:
+		return _font
+	_font_dicari = true
+	# 1) Muat langsung dari file TTF (kontrol penuh setelan crisp)
+	for p in _FONT_PATHS:
+		if FileAccess.file_exists(p):
+			var ff := FontFile.new()
+			if ff.load_dynamic_font(p) == OK:
+				_crisp(ff)
+				_font = ff
+				return _font
+	# 2) Kalau sudah diimpor Godot, pakai itu tapi paksa crisp
+	for p in _FONT_PATHS:
+		if ResourceLoader.exists(p):
+			var r = load(p)
+			if r is FontFile:
+				_crisp(r)
+				_font = r
+				return _font
+			elif r is Font:
+				_font = r
+				return _font
 	return _font
 
 func unit() -> float:

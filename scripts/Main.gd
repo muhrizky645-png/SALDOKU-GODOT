@@ -2,6 +2,7 @@ extends Node2D
 # Orkestrator: kamera ikut pemain, spawner, HUD gaya Unity (plate + font pixel Thaleah), reset sistem global.
 # HUD dihitung ulang biar SAMA dengan Unity (Unit=1080): panel LEVEL + bar XP cyan,
 # plat SKOR (angka saja), plat TIMER (MM:SS), bar BOSS. Font pixel dari Tema.font_utama().
+# Latar: kertas prosedural bertekstur (pengganti hijau polos), di-tile & ikut kamera.
 
 const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
 
@@ -30,6 +31,7 @@ var camera: Camera2D = null
 var over := false
 var _menu = null
 var _font: Font = null
+var _latar: Sprite2D = null
 
 var _panel_level: Panel = null
 var _lbl_level: Label = null
@@ -63,6 +65,7 @@ func _ready() -> void:
 	camera.make_current()
 	camera.global_position = Vector2.ZERO
 
+	_bangun_latar()
 	_bangun_ui()
 	_buat_menu()
 
@@ -107,7 +110,53 @@ func tambah_skor(n: int) -> void:
 func _process(delta: float) -> void:
 	if camera != null and player != null and is_instance_valid(player):
 		camera.global_position = camera.global_position.lerp(player.global_position, clampf(delta * 5.0, 0.0, 1.0))
+	_perbarui_latar()
 	_update_ui()
+
+# ====== LATAR KERTAS PROSEDURAL ======
+func _buat_tekstur_kertas() -> ImageTexture:
+	var n := 128
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20240823
+	for y in n:
+		for x in n:
+			var c := LATAR
+			# serat kertas: noise halus per-piksel
+			var v := rng.randf_range(-0.035, 0.035)
+			c = Color(clampf(c.r + v, 0.0, 1.0), clampf(c.g + v, 0.0, 1.0), clampf(c.b + v, 0.0, 1.0), 1.0)
+			# bercak lembut (mottling) 16px, tile mulus
+			if (int(x / 16) + int(y / 16)) % 2 == 0:
+				c = c.lightened(0.018)
+			else:
+				c = c.darkened(0.012)
+			# garis grid samar tiap 32px
+			if x % 32 == 0 or y % 32 == 0:
+				c = c.darkened(0.07)
+			img.set_pixel(x, y, c)
+	return ImageTexture.create_from_image(img)
+
+func _bangun_latar() -> void:
+	_latar = Sprite2D.new()
+	_latar.texture = _buat_tekstur_kertas()
+	_latar.centered = true
+	_latar.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	_latar.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_latar.region_enabled = true
+	_latar.z_index = -100
+	_latar.z_as_relative = false
+	add_child(_latar)
+	_perbarui_latar()
+
+func _perbarui_latar() -> void:
+	if _latar == null:
+		return
+	var cam := Vector2.ZERO
+	if camera != null and is_instance_valid(camera):
+		cam = camera.global_position
+	var ukuran := Vector2(3200.0, 4800.0)
+	_latar.global_position = cam
+	_latar.region_rect = Rect2(cam - ukuran * 0.5, ukuran)
 
 # ====== HUD ======
 func _plate(bg: Color, border: Color, tebal: int) -> StyleBoxFlat:

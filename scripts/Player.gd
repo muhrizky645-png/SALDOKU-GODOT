@@ -1,5 +1,6 @@
 extends Node2D
 # VERSI LENGKAP: rig sprite karakter + gerak WASD/joystick + tembak + integrasi Mode Dewa.
+# Bar HP kecil digambar di atas kepala (ikut Unity: hpFill di bawah/menempel pemain).
 
 var speed := 340.0
 var bob_amount := 0.08
@@ -162,6 +163,24 @@ func _process(delta: float) -> void:
 		var main = get_tree().get_first_node_in_group("main")
 		if main != null and main.has_method("game_over"):
 			main.game_over()
+	queue_redraw()
+
+func _draw() -> void:
+	if sudah_mati:
+		return
+	var w := 92.0
+	var h := 12.0
+	var y := -92.0
+	var x := -w / 2.0
+	var r := clampf(hp / hp_maks, 0.0, 1.0)
+	draw_rect(Rect2(x - 2.0, y - 2.0, w + 4.0, h + 4.0), Color(0.0, 0.0, 0.0, 0.55))
+	draw_rect(Rect2(x, y, w, h), Color(0.12, 0.12, 0.12, 0.9))
+	var col := Color(0.35, 0.9, 0.35)
+	if r <= 0.25:
+		col = Color(0.9, 0.25, 0.2)
+	elif r <= 0.5:
+		col = Color(0.95, 0.8, 0.25)
+	draw_rect(Rect2(x, y, w * r, h), col)
 
 func _tembak_sekarang() -> void:
 	var musuh := get_tree().get_nodes_in_group("musuh")

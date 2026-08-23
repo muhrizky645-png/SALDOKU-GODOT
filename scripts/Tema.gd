@@ -16,6 +16,22 @@ const REDUP := Color(0.72, 0.74, 0.64, 1.0)
 # Flag lintas-reload: kalau true, Main langsung mulai main (dipakai tombol ULANGI).
 var langsung_main := false
 
+# ====== FONT PIXEL (Thaleah) ======
+# Taruh file TTF di salah satu path ini; kalau tidak ada, pakai font bawaan Godot.
+var _font: Font = null
+var _font_dicari := false
+
+func font_utama() -> Font:
+	if not _font_dicari:
+		_font_dicari = true
+		for p in ["res://Assets/fonts/ThaleahFat.ttf", "res://Assets/fonts/ThaleahPixel.ttf", "res://assets/fonts/ThaleahFat.ttf", "res://fonts/ThaleahFat.ttf", "res://ThaleahFat.ttf"]:
+			if ResourceLoader.exists(p):
+				var r = load(p)
+				if r is Font:
+					_font = r
+					break
+	return _font
+
 func unit() -> float:
 	return 1080.0
 

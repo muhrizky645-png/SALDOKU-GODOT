@@ -1,31 +1,55 @@
 extends Node2D
-# Orkestrator: kamera ikut pemain, spawner, HUD, bar BOSS, reset sistem global.
-# Fase D: mulai dari Home (Menu). Player/Spawner dibuat saat MAIN ditekan.
+# Orkestrator: kamera ikut pemain, spawner, HUD gaya Unity (plate + font pixel Thaleah), reset sistem global.
+# HUD dihitung ulang biar SAMA dengan Unity (Unit=1080): panel LEVEL + bar XP cyan,
+# plat SKOR (angka saja), plat TIMER (MM:SS), bar BOSS. Font pixel dari Tema.font_utama().
 
-const BAR_W := 360.0
-const BAR_H := 26.0
-# Warna "Paper_4" hijau dari scene Unity (SampleScene).
 const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
+
+# Palet (ikut Tema.cs Unity)
+const C_PLATE := Color(0.05, 0.06, 0.04, 0.78)
+const C_GARIS_REDUP := Color(0.38, 0.42, 0.24, 0.9)
+const C_DARAH := Color(0.82, 0.17, 0.13, 1.0)
+const C_TULANG := Color(0.95, 0.94, 0.87, 1.0)
+const C_ARMY := Color(0.66, 0.85, 0.38, 1.0)
+const C_XP := Color(0.45, 0.95, 1.0, 0.95)
+const C_BAR_BG := Color(0.0, 0.0, 0.0, 0.55)
+
+# Ukuran font responsif Unity pada Unit=1080
+const FLV := 32
+const FSKOR := 54
+const FTIMER := 56
+
+# Geometri bar XP (dihitung dari LevelSystem.cs pada Unit=1080)
+const XP_X := 58.97
+const XP_Y := 117.8
+const XP_W := 832.5
+const XP_H := 44.16
 
 var player = null
 var camera: Camera2D = null
 var over := false
 var _menu = null
+var _font: Font = null
 
+var _panel_level: Panel = null
 var _lbl_level: Label = null
-var _bar_bg: ColorRect = null
-var _bar_fill: ColorRect = null
+var _xp_fill: ColorRect = null
+var _panel_skor: Panel = null
 var _lbl_skor: Label = null
-var _lbl_hp: Label = null
+var _panel_waktu: Panel = null
 var _lbl_waktu: Label = null
 
 var _lbl_boss: Label = null
-var _boss_bg: ColorRect = null
+var _boss_bg: Panel = null
 var _boss_fill: ColorRect = null
 
 func _ready() -> void:
 	add_to_group("main")
 	RenderingServer.set_default_clear_color(LATAR)
+
+	var tf = get_node_or_null("/root/Tema")
+	if tf != null and tf.has_method("font_utama"):
+		_font = tf.font_utama()
 
 	for nm in ["Skor", "Level", "Waktu", "Skill", "Senjata", "Dewa"]:
 		var g = get_node_or_null("/root/" + nm)
@@ -85,6 +109,39 @@ func _process(delta: float) -> void:
 		camera.global_position = camera.global_position.lerp(player.global_position, clampf(delta * 5.0, 0.0, 1.0))
 	_update_ui()
 
+# ====== HUD ======
+func _plate(bg: Color, border: Color, tebal: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(tebal)
+	sb.set_corner_radius_all(0)
+	return sb
+
+func _mk_panel(parent: Node, x: float, y: float, w: float, h: float, bg: Color, border: Color, tebal: int) -> Panel:
+	var p := Panel.new()
+	p.position = Vector2(x, y)
+	p.size = Vector2(w, h)
+	p.add_theme_stylebox_override("panel", _plate(bg, border, tebal))
+	parent.add_child(p)
+	return p
+
+func _mk_label(parent: Node, x: float, y: float, w: float, h: float, ukuran: int, warna: Color, ah: int, av: int) -> Label:
+	var l := Label.new()
+	l.position = Vector2(x, y)
+	l.size = Vector2(w, h)
+	l.horizontal_alignment = ah
+	l.vertical_alignment = av
+	l.add_theme_font_size_override("font_size", ukuran)
+	l.add_theme_color_override("font_color", warna)
+	l.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
+	l.add_theme_constant_override("shadow_offset_x", 2)
+	l.add_theme_constant_override("shadow_offset_y", 2)
+	if _font != null:
+		l.add_theme_font_override("font", _font)
+	parent.add_child(l)
+	return l
+
 func _bangun_ui() -> void:
 	var cl := CanvasLayer.new()
 	add_child(cl)
@@ -94,113 +151,75 @@ func _bangun_ui() -> void:
 		var joy = jr.new()
 		cl.add_child(joy)
 
-	_lbl_level = _mk_label(cl, Vector2(40, 34), 40)
-	_lbl_level.add_theme_color_override("font_color", Color(0.7, 0.95, 0.5))
+	# ---- PANEL LEVEL (kiri atas, memanjang ke kanan) ----
+	_panel_level = _mk_panel(cl, 32.4, 32.4, 885.6, 147.2, C_PLATE, C_GARIS_REDUP, 2)
+	_lbl_level = _mk_label(cl, 58.97, 45.65, 832.5, 58.88, FLV, C_ARMY, HORIZONTAL_ALIGNMENT_LEFT, VERTICAL_ALIGNMENT_TOP)
+	_lbl_level.text = "LEVEL 1"
 
-	_bar_bg = ColorRect.new()
-	_bar_bg.position = Vector2(40, 86)
-	_bar_bg.size = Vector2(BAR_W, BAR_H)
-	_bar_bg.color = Color(0, 0, 0, 0.55)
-	cl.add_child(_bar_bg)
+	# bar XP tebal cyan di bawah panel level
+	_mk_panel(cl, XP_X, XP_Y, XP_W, XP_H, C_BAR_BG, C_GARIS_REDUP, 1)
+	_xp_fill = ColorRect.new()
+	_xp_fill.position = Vector2(XP_X + 1.0, XP_Y + 1.0)
+	_xp_fill.size = Vector2(0.0, XP_H - 2.0)
+	_xp_fill.color = C_XP
+	cl.add_child(_xp_fill)
 
-	_bar_fill = ColorRect.new()
-	_bar_fill.position = Vector2(42, 88)
-	_bar_fill.size = Vector2(0, BAR_H - 4.0)
-	_bar_fill.color = Color(0.45, 0.95, 1.0, 0.95)
-	cl.add_child(_bar_fill)
+	# ---- PLAT SKOR (angka saja, di bawah panel level, mepet kiri) ----
+	_panel_skor = _mk_panel(cl, 32.4, 199.04, 140.4, 91.8, C_PLATE, C_GARIS_REDUP, 2)
+	_lbl_skor = _mk_label(cl, 32.4, 199.04, 140.4, 91.8, FSKOR, C_TULANG, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_lbl_skor.text = "0"
 
-	_lbl_skor = _mk_label(cl, Vector2(40, 124), 44)
-	_lbl_hp = _mk_label(cl, Vector2(40, 186), 40)
+	# ---- PLAT TIMER (MM:SS, mepet kanan, sejajar skor) ----
+	_panel_waktu = _mk_panel(cl, 846.0, 197.34, 201.6, 95.2, C_PLATE, C_GARIS_REDUP, 2)
+	_lbl_waktu = _mk_label(cl, 846.0, 197.34, 201.6, 95.2, FTIMER, C_TULANG, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_lbl_waktu.text = "00:00"
 
-	_lbl_waktu = Label.new()
-	_lbl_waktu.add_theme_font_size_override("font_size", 48)
-	_lbl_waktu.add_theme_color_override("font_color", Color.WHITE)
-	_lbl_waktu.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_lbl_waktu.anchor_left = 1.0
-	_lbl_waktu.anchor_right = 1.0
-	_lbl_waktu.offset_left = -300.0
-	_lbl_waktu.offset_top = 34.0
-	_lbl_waktu.offset_right = -40.0
-	_lbl_waktu.offset_bottom = 100.0
-	cl.add_child(_lbl_waktu)
-
-	_lbl_boss = Label.new()
-	_lbl_boss.add_theme_font_size_override("font_size", 32)
-	_lbl_boss.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
-	_lbl_boss.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_lbl_boss.anchor_left = 0.0
-	_lbl_boss.anchor_right = 1.0
-	_lbl_boss.offset_top = 320.0
-	_lbl_boss.offset_bottom = 360.0
-	_lbl_boss.text = "BOSS"
+	# ---- BAR BOSS (tengah) ----
+	_lbl_boss = _mk_label(cl, 0.0, 288.0, 1080.0, 67.2, 32, C_DARAH, HORIZONTAL_ALIGNMENT_CENTER, VERTICAL_ALIGNMENT_CENTER)
+	_lbl_boss.text = "! B O S S !"
 	_lbl_boss.visible = false
-	cl.add_child(_lbl_boss)
-
-	_boss_bg = ColorRect.new()
-	_boss_bg.color = Color(0, 0, 0, 0.55)
-	_boss_bg.anchor_left = 0.5
-	_boss_bg.anchor_right = 0.5
-	_boss_bg.offset_left = -300.0
-	_boss_bg.offset_right = 300.0
-	_boss_bg.offset_top = 364.0
-	_boss_bg.offset_bottom = 392.0
+	_boss_bg = _mk_panel(cl, 162.0, 364.8, 756.0, 49.92, C_BAR_BG, C_GARIS_REDUP, 1)
 	_boss_bg.visible = false
-	cl.add_child(_boss_bg)
-
 	_boss_fill = ColorRect.new()
-	_boss_fill.color = Color(1.0, 0.3, 0.3, 0.95)
-	_boss_fill.anchor_left = 0.5
-	_boss_fill.anchor_right = 0.5
-	_boss_fill.offset_left = -298.0
-	_boss_fill.offset_right = 298.0
-	_boss_fill.offset_top = 366.0
-	_boss_fill.offset_bottom = 390.0
+	_boss_fill.position = Vector2(163.0, 365.8)
+	_boss_fill.size = Vector2(0.0, 47.92)
+	_boss_fill.color = C_DARAH
 	_boss_fill.visible = false
 	cl.add_child(_boss_fill)
 
-func _mk_label(parent: Node, pos: Vector2, ukuran: int) -> Label:
-	var l := Label.new()
-	l.position = pos
-	l.add_theme_font_size_override("font_size", ukuran)
-	l.add_theme_color_override("font_color", Color.WHITE)
-	parent.add_child(l)
-	return l
-
 func _update_ui() -> void:
-	var hidup := player != null and is_instance_valid(player)
 	var L = get_node_or_null("/root/Level")
 	var S = get_node_or_null("/root/Skor")
 	var W = get_node_or_null("/root/Waktu")
 	if _lbl_level != null and L != null:
 		_lbl_level.text = "LEVEL %d" % L.level
-	if _bar_fill != null and L != null:
-		_bar_fill.size = Vector2((BAR_W - 4.0) * L.rasio_xp(), BAR_H - 4.0)
+	if _xp_fill != null and L != null:
+		_xp_fill.size = Vector2((XP_W - 2.0) * clampf(L.rasio_xp(), 0.0, 1.0), XP_H - 2.0)
 	if _lbl_skor != null and S != null:
-		_lbl_skor.text = "SKOR %d" % S.skor
-	if _lbl_hp != null:
-		var hpv := 0
-		if hidup:
-			hpv = int(maxf(0.0, player.hp))
-		_lbl_hp.text = "NYAWA %d" % hpv
+		var s := str(S.skor)
+		_lbl_skor.text = s
+		var plW: float = maxf(float(FSKOR) * 2.6, float(FSKOR) * (1.1 + 0.62 * float(s.length())))
+		if _panel_skor != null:
+			_panel_skor.size = Vector2(plW, _panel_skor.size.y)
+		_lbl_skor.size = Vector2(plW, _lbl_skor.size.y)
 	if _lbl_waktu != null and W != null:
 		_lbl_waktu.text = W.teks()
 	_update_boss_bar()
 
 func _update_boss_bar() -> void:
 	var bos = get_tree().get_first_node_in_group("bos")
-	var ada_bos: bool = bos != null and is_instance_valid(bos)
+	var ada: bool = bos != null and is_instance_valid(bos)
 	if _lbl_boss != null:
-		_lbl_boss.visible = ada_bos
+		_lbl_boss.visible = ada
 	if _boss_bg != null:
-		_boss_bg.visible = ada_bos
+		_boss_bg.visible = ada
 	if _boss_fill != null:
-		_boss_fill.visible = ada_bos
-		if ada_bos:
+		_boss_fill.visible = ada
+		if ada:
 			var rasio := 0.0
 			if bos.nyawa_maks > 0:
 				rasio = clampf(float(bos.hp) / float(bos.nyawa_maks), 0.0, 1.0)
-			_boss_fill.offset_left = -298.0
-			_boss_fill.offset_right = -298.0 + 596.0 * rasio
+			_boss_fill.size = Vector2((756.0 - 2.0) * rasio, _boss_fill.size.y)
 
 func game_over() -> void:
 	if over:
@@ -231,6 +250,8 @@ func game_over() -> void:
 	lbl.text = "GAME OVER\nSKOR %d\nREKOR %d\n\nSentuh untuk main lagi" % [skor, rekor]
 	lbl.add_theme_font_size_override("font_size", 56)
 	lbl.add_theme_color_override("font_color", Color.WHITE)
+	if _font != null:
+		lbl.add_theme_font_override("font", _font)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl.set_anchors_preset(Control.PRESET_FULL_RECT)

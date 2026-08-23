@@ -11,12 +11,16 @@ func reset() -> void:
 	xp_untuk_naik = 5
 
 func tambah_xp(jumlah: int) -> void:
+	var lv_lama := level
 	xp += jumlah
 	while xp >= xp_untuk_naik:
 		xp -= xp_untuk_naik
 		level += 1
 		xp_untuk_naik = int(round(xp_untuk_naik * 1.3)) + 2
-	# TODO Fase B: SkillManager.tampilkan() + SoundManager.level_up()
+	if level > lv_lama:
+		var snd = get_node_or_null("/root/Sound")
+		if snd != null:
+			snd.level_up()
 
 func rasio_xp() -> float:
 	if xp_untuk_naik <= 0:

@@ -35,6 +35,9 @@ func _process(delta: float) -> void:
 		var L = get_node_or_null("/root/Level")
 		if L != null:
 			L.tambah_xp(nilai)
+		var snd = get_node_or_null("/root/Sound")
+		if snd != null:
+			snd.ambil_xp()
 		queue_free()
 		return
 	var jm := jarak_magnet

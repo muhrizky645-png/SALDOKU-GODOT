@@ -20,6 +20,7 @@ var rig: Node2D = null
 var _k := 1.0
 var _face := 1.0
 var _t := 0.0
+var _t_kena := 0.0
 var _weapon_tex: Texture2D = null
 const TARGET_TINGGI := 130.0
 
@@ -130,12 +131,20 @@ func _process(delta: float) -> void:
 		_tembak_sekarang()
 		var cepat: float = 0.12 if dewa_on else 1.0
 		_tembak = fire_rate * cepat
+	var kena_ini := false
 	if not dewa_on:
 		for e in get_tree().get_nodes_in_group("musuh"):
 			if is_instance_valid(e):
 				var em := e as Node2D
 				if em != null and global_position.distance_to(em.global_position) < 72.0:
 					hp -= 14.0 * delta
+					kena_ini = true
+	_t_kena -= delta
+	if kena_ini and _t_kena <= 0.0:
+		var snd = get_node_or_null("/root/Sound")
+		if snd != null:
+			snd.player_kena()
+		_t_kena = 0.5
 	if hp <= 0.0 and not sudah_mati:
 		sudah_mati = true
 		var main = get_tree().get_first_node_in_group("main")
@@ -175,3 +184,6 @@ func _tembak_sekarang() -> void:
 		b.setup(_weapon_tex, ap)
 		main.add_child(b)
 		b.global_position = global_position
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null:
+		snd.tembak()

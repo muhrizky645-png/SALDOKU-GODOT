@@ -202,11 +202,18 @@ func kena(dmg: int) -> void:
 	_flash = 0.08
 	if hp <= 0:
 		mati()
+	else:
+		var snd = get_node_or_null("/root/Sound")
+		if snd != null:
+			snd.musuh_kena()
 
 func mati() -> void:
 	if _dead:
 		return
 	_dead = true
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null:
+		snd.musuh_mati()
 	var pos := global_position
 	var main = get_tree().get_first_node_in_group("main")
 	if main == null:

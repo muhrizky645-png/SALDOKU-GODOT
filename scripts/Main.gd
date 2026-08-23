@@ -75,6 +75,11 @@ func mulai_main() -> void:
 			sp.player = player
 			add_child(sp)
 
+func tambah_skor(n: int) -> void:
+	var S = get_node_or_null("/root/Skor")
+	if S != null:
+		S.tambah(n)
+
 func _process(delta: float) -> void:
 	if camera != null and player != null and is_instance_valid(player):
 		camera.global_position = camera.global_position.lerp(player.global_position, clampf(delta * 5.0, 0.0, 1.0))

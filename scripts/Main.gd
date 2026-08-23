@@ -2,7 +2,6 @@ extends Node2D
 # Orkestrator: kamera ikut pemain, spawner, HUD, bar BOSS, reset sistem global.
 # Fase D: mulai dari Home (Menu). Player/Spawner dibuat saat MAIN ditekan.
 
-const VER := "ISO14D"
 const BAR_W := 360.0
 const BAR_H := 26.0
 # Warna "Paper_4" hijau dari scene Unity (SampleScene).
@@ -11,7 +10,6 @@ const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
 var player = null
 var camera: Camera2D = null
 var over := false
-var _diag := ""
 var _menu = null
 
 var _lbl_level: Label = null
@@ -20,7 +18,6 @@ var _bar_fill: ColorRect = null
 var _lbl_skor: Label = null
 var _lbl_hp: Label = null
 var _lbl_waktu: Label = null
-var _lbl_dbg: Label = null
 
 var _lbl_boss: Label = null
 var _boss_bg: ColorRect = null
@@ -34,9 +31,6 @@ func _ready() -> void:
 		var g = get_node_or_null("/root/" + nm)
 		if g != null and g.has_method("reset"):
 			g.reset()
-
-	for nm in ["PlayerA", "PlayerB", "PlayerC"]:
-		_cek(nm)
 
 	camera = Camera2D.new()
 	camera.zoom = Vector2(1.15, 1.15)
@@ -81,17 +75,6 @@ func mulai_main() -> void:
 			sp.player = player
 			add_child(sp)
 
-func _cek(nm: String) -> void:
-	var s = load("res://scripts/" + nm + ".gd")
-	if s == null:
-		_diag += nm + "=L "
-		return
-	var o = s.new()
-	if o == null:
-		_diag += nm + "=N "
-	else:
-		o.free()
-
 func _process(delta: float) -> void:
 	if camera != null and player != null and is_instance_valid(player):
 		camera.global_position = camera.global_position.lerp(player.global_position, clampf(delta * 5.0, 0.0, 1.0))
@@ -123,7 +106,6 @@ func _bangun_ui() -> void:
 
 	_lbl_skor = _mk_label(cl, Vector2(40, 124), 44)
 	_lbl_hp = _mk_label(cl, Vector2(40, 186), 40)
-	_lbl_dbg = _mk_label(cl, Vector2(40, 244), 24)
 
 	_lbl_waktu = Label.new()
 	_lbl_waktu.add_theme_font_size_override("font_size", 48)
@@ -198,20 +180,6 @@ func _update_ui() -> void:
 	if _lbl_waktu != null and W != null:
 		_lbl_waktu.text = W.teks()
 	_update_boss_bar()
-	if _lbl_dbg != null:
-		var jml := get_tree().get_nodes_in_group("musuh").size()
-		var nb := get_tree().get_nodes_in_group("bos").size()
-		var lv := 0
-		if L != null:
-			lv = L.level
-		var pl := 0
-		if hidup:
-			pl = player.parts_loaded
-		var sinfo := ""
-		var Sen = get_node_or_null("/root/Senjata")
-		if Sen != null:
-			sinfo = "O%d A%d R%d" % [Sen.lv_orbit, Sen.lv_aura, Sen.lv_roket]
-		_lbl_dbg.text = "DBG %s hidup=%s parts=%d musuh=%d bos=%d lv=%d %s [%s]" % [VER, str(hidup), pl, jml, nb, lv, sinfo, _diag]
 
 func _update_boss_bar() -> void:
 	var bos = get_tree().get_first_node_in_group("bos")

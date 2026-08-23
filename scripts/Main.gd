@@ -1,16 +1,18 @@
 extends Node2D
-# Orkestrator Fase 1-C: kamera ikut pemain, spawner, HUD, bar nyawa BOSS, reset semua sistem global.
+# Orkestrator: kamera ikut pemain, spawner, HUD, bar BOSS, reset sistem global.
+# Fase D: mulai dari Home (Menu). Player/Spawner dibuat saat MAIN ditekan.
 
-const VER := "ISO13D"
+const VER := "ISO14D"
 const BAR_W := 360.0
 const BAR_H := 26.0
-# Warna "Paper_4" hijau dari scene Unity (SampleScene): RGB 0.327, 0.670, 0.313.
+# Warna "Paper_4" hijau dari scene Unity (SampleScene).
 const LATAR := Color(0.32728687, 0.6698113, 0.31278923)
 
 var player = null
 var camera: Camera2D = null
 var over := false
 var _diag := ""
+var _menu = null
 
 var _lbl_level: Label = null
 var _bar_bg: ColorRect = null
@@ -41,7 +43,30 @@ func _ready() -> void:
 	add_child(camera)
 	camera.enabled = true
 	camera.make_current()
+	camera.global_position = Vector2.ZERO
 
+	_bangun_ui()
+	_buat_menu()
+
+	var t = get_node_or_null("/root/Tema")
+	if t != null and t.langsung_main:
+		t.langsung_main = false
+		if _menu != null:
+			_menu.mulai(false)
+	else:
+		if _menu != null:
+			_menu.tampilkan_home()
+
+func _buat_menu() -> void:
+	var ms = load("res://scripts/Menu.gd")
+	if ms != null:
+		_menu = ms.new()
+		_menu.main = self
+		add_child(_menu)
+
+func mulai_main() -> void:
+	if player != null and is_instance_valid(player):
+		return
 	var ps = load("res://scripts/Player.gd")
 	if ps != null:
 		player = ps.new()
@@ -49,15 +74,12 @@ func _ready() -> void:
 		add_child(player)
 		player.global_position = Vector2.ZERO
 	camera.global_position = Vector2.ZERO
-
 	var spr = load("res://scripts/Spawner.gd")
 	if spr != null:
 		var sp = spr.new()
 		if sp != null:
 			sp.player = player
 			add_child(sp)
-
-	_bangun_ui()
 
 func _cek(nm: String) -> void:
 	var s = load("res://scripts/" + nm + ".gd")
@@ -211,6 +233,8 @@ func game_over() -> void:
 	if over:
 		return
 	over = true
+	if _menu != null and _menu.has_method("mode_game_over"):
+		_menu.mode_game_over()
 	var snd = get_node_or_null("/root/Sound")
 	if snd != null:
 		snd.game_over()
@@ -243,6 +267,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not over:
 		return
 	if event is InputEventScreenTouch and event.pressed:
+		var t = get_node_or_null("/root/Tema")
+		if t != null:
+			t.langsung_main = true
 		get_tree().reload_current_scene()
 	elif event is InputEventMouseButton and event.pressed:
+		var t2 = get_node_or_null("/root/Tema")
+		if t2 != null:
+			t2.langsung_main = true
 		get_tree().reload_current_scene()

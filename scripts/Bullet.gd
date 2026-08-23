@@ -11,14 +11,14 @@ func setup(tex: Texture2D, dir: Vector2) -> void:
 	direction = dir
 	var cs := CollisionShape2D.new()
 	var c := CircleShape2D.new()
-	c.radius = 18.0
+	c.radius = 12.0
 	cs.shape = c
 	add_child(cs)
 	if tex != null:
 		var s := Sprite2D.new()
 		s.texture = tex
 		s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		s.scale = Vector2(2.0, 2.0)
+		s.scale = Vector2(0.5, 0.5)
 		add_child(s)
 	else:
 		var p := Polygon2D.new()
